@@ -1,0 +1,54 @@
+---- lua/mappings/python.lua
+--vim.keymap.set('n', '<leader>ac', function()
+--  if vim.bo.filetype ~= 'python' then
+--    print 'Not a Python file'
+--    return
+--  end
+--
+--  local file_dir = vim.fn.expand '%:p:h'
+--  local project_root = vim.fn.fnamemodify(file_dir, ':h:h')
+--  local env_path = project_root .. '/mip_env/bin/activate'
+--
+--  if vim.fn.filereadable(env_path) == 0 then
+--    print('Virtualenv not found at: ' .. env_path)
+--    return
+--  end
+--
+--  --  vim.cmd('vsplit | term cd ' .. project_root .. ' && source mip_env/bin/activate && exec bash -l')
+--  vim.cmd('vnew | term cd ' .. project_root .. ' && source mip_env/bin/activate && exec bash -l')
+--end, { desc = 'Activate mip_env in terminal (2 levels up)' })
+--
+
+-- Funzione che commenta/decommenta una o più righe
+--local function toggle_comment()
+--  local mode = vim.fn.mode()
+--  local start_line, end_line
+--
+--  if mode == 'v' or mode == 'V' then
+--    -- Se siamo in visual mode
+--    start_line = vim.fn.line "'<"
+--    end_line = vim.fn.line "'>"
+--    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+--  else
+--    -- Normale mode
+--    start_line = vim.fn.line '.'
+--    end_line = start_line
+--  end
+--
+--  for i = start_line, end_line do
+--    local line = vim.fn.getline(i)
+--    if line:match '^%s*#' then
+--      -- Rimuove il # (decommenta)
+--      line = line:gsub('^(%s*)#', '%1')
+--    else
+--      -- Aggiunge il # (commenta)
+--      line = line:gsub('^(%s*)', '%1#')
+--    end
+--    vim.fn.setline(i, line)
+--  end
+--end
+--
+---- Keymap: Ctrl-/ in normal e visual mode
+--vim.keymap.set({ 'n', 'v', 'x' }, '<C-_>', toggle_comment, { desc = 'Toggle comment with #' })
+
+vim.keymap.set({ 'n', 'v' }, '<leader>rc', ':w<CR> :! python %<CR>', { desc = '[R]un [C]ode of current py file' })
