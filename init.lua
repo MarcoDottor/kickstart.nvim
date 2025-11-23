@@ -1020,7 +1020,7 @@ require('lazy').setup({
 --
 vim.keymap.set('v', '<C-c>', '"+y', { desc = 'Copy to system clipboard' })
 vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"+p', { desc = 'Copy to system clipboard' })
-vim.keymap.set('i', '<C-h>', '<Esc>dbi', { desc = 'Delete backward in insert mode' })
+vim.keymap.set('i', '<C-h>', '<Esc>ldbi', { desc = 'Delete backward in insert mode' })
 vim.keymap.set('v', 'ie', '<Esc>ggVG', { desc = 'Highlight everything' })
 vim.keymap.set('n', 'yw', 'ye', { desc = 'Yank word yank to the end of the word' })
 
