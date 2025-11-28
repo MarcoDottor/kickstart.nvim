@@ -670,6 +670,57 @@ require('lazy').setup({
           },
         },
 
+        cssls = {
+          cmd = { 'vscode-css-language-server', '--stdio' },
+          filetypes = { 'css', 'scss', 'less' },
+          root_dir = require('lspconfig').util.root_pattern('package.json', '.git'),
+          settings = {
+            css = {
+              validate = true,
+            },
+            scss = {
+              validate = true,
+            },
+            less = {
+              validate = true,
+            },
+          },
+        },
+
+        tailwindcss = {
+          cmd = { 'tailwindcss-language-server', '--stdio' },
+          filetypes = {
+            'html',
+            'css',
+            'scss',
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+            'vue',
+            'svelte',
+          },
+          root_dir = require('lspconfig').util.root_pattern(
+            'tailwind.config.js',
+            'tailwind.config.cjs',
+            'tailwind.config.ts',
+            'postcss.config.js',
+            'package.json',
+            '.git'
+          ),
+          settings = {
+            tailwindCSS = {
+              includeLanguages = {
+                typescript = 'html',
+                typescriptreact = 'html',
+                javascript = 'html',
+                javascriptreact = 'html',
+              },
+              validate = true,
+            },
+          },
+        },
+
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
@@ -978,10 +1029,12 @@ require('lazy').setup({
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
+  require 'plugins.treesitter',
   require 'plugins.vimtex',
   require 'plugins.gitFunctionality',
   require 'plugins.numToStr_Comment',
   require 'plugins.tinyInline',
+  require 'plugins.htmlAutoClose',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1023,6 +1076,7 @@ vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"+p', { desc = 'Copy to system 
 vim.keymap.set('i', '<C-h>', '<Esc>ldbi', { desc = 'Delete backward in insert mode' })
 vim.keymap.set('v', 'ie', '<Esc>ggVG', { desc = 'Highlight everything' })
 vim.keymap.set('n', 'yw', 'ye', { desc = 'Yank word yank to the end of the word' })
+vim.keymap.set('n', ';', ':', { desc = 'Open command mode by semicolon' })
 
 vim.keymap.set('i', '<Tab>', function()
   local next_char = vim.fn.strpart(vim.fn.getline '.', vim.fn.col '.' - 1, 1)
