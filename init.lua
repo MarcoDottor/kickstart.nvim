@@ -721,6 +721,24 @@ require('lazy').setup({
           },
         },
 
+        pyright = {
+          cmd = { 'pyright-langserver', '--stdio' },
+
+          -- Riconosce un progetto Python
+          root_dir = require('lspconfig').util.root_pattern('pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', '.git'),
+
+          settings = {
+            python = {
+              analysis = {
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = 'workspace', -- più preciso
+                typeCheckingMode = 'basic', -- puoi cambiare in "strict"
+              },
+            },
+          },
+        },
+
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
