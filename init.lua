@@ -5,7 +5,6 @@
 --  NOTE: Must happen before plugins are loaded ()
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
@@ -739,6 +738,38 @@ require('lazy').setup({
           },
         },
 
+        texlab = {
+          cmd = { 'texlab' },
+          filetypes = { 'tex', 'plaintex', 'bib' },
+          root_dir = require('lspconfig').util.root_pattern('.git', '.'),
+          settings = {
+            texlab = {
+              auxDirectory = '.',
+              bibtexFormatter = 'texlab',
+              build = {
+                executable = 'latexmk',
+                args = { '-pdf', '-interaction=nonstopmode', '-synctex=1', '%f' },
+                onSave = true,
+                forwardSearchAfter = false,
+              },
+              chktex = {
+                onEdit = false,
+                onOpenAndSave = true,
+              },
+              diagnosticsDelay = 300,
+              formatterLineLength = 80,
+              forwardSearch = {
+                executable = 'zathura',
+                args = { '--synctex-forward', '%l:1:%f', '%p' },
+              },
+              latexFormatter = 'latexindent',
+              latexindent = {
+                modifyLineBreaks = true,
+              },
+            },
+          },
+        },
+
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
@@ -1053,6 +1084,7 @@ require('lazy').setup({
   require 'plugins.numToStr_Comment',
   require 'plugins.tinyInline',
   require 'plugins.htmlAutoClose',
+  require 'plugins.dap',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1090,10 +1122,14 @@ require('lazy').setup({
 -- vim: ts=2 sts=2 sw=2 et
 --
 vim.keymap.set('v', '<C-c>', '"+y', { desc = 'Copy to system clipboard' })
-vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"+p', { desc = 'Copy to system clipboard' })
-vim.keymap.set('i', '<C-h>', '<Esc>ldbi', { desc = 'Delete backward in insert mode' })
+vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"*p', { desc = 'Paste from system clipboard' })
+vim.keymap.set('i', '<C-h>', '<Space><Esc>dbxi', { desc = 'Delete backward in insert mode' })
 vim.keymap.set('v', 'ie', '<Esc>ggVG', { desc = 'Highlight everything' })
-vim.keymap.set('n', 'yw', 'ye', { desc = 'Yank word yank to the end of the word' })
+vim.keymap.set('n', 'cie', '<Esc>ggVGc', { desc = 'Change everything' })
+vim.keymap.set('n', 'yw', 'ye', { desc = 'Yank to the end of the word' })
+vim.keymap.set('n', 'yW', 'yE', { desc = 'Yank to the end of the WORD' })
+-- vim.keymap.set('n', 'dw', 'de', { desc = 'Delete word yank to the end of the word' })
+-- vim.keymap.set('n', 'dW', 'dE', { desc = 'Delete word yank to the end of the WORD' })
 vim.keymap.set('n', ';', ':', { desc = 'Open command mode by semicolon' })
 
 vim.keymap.set('i', '<Tab>', function()
