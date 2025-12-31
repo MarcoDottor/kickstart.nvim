@@ -37,10 +37,7 @@ return {
         layouts = {
           {
             elements = {
-              { id = 'scopes', size = 0.60 }, -- Variables - 60% of left panel
-              { id = 'breakpoints', size = 0.15 }, -- Breakpoints - 15%
-              { id = 'stacks', size = 0.15 }, -- Call stack - 15%
-              { id = 'watches', size = 0.10 }, -- Watches - 10%
+              { id = 'scopes', size = 1.0 }, -- Only variables, full height
             },
             size = 50, -- Width of left sidebar (columns)
             position = 'left',
@@ -82,6 +79,14 @@ return {
           max_type_length = nil,
           max_value_lines = 100,
         },
+        -- Filter out unwanted variable scopes
+        element_mappings = {},
+        expand_lines = true,
+        force_buffers = true,
+        scopes = {
+          -- Only show Locals, hide Statics, Globals, Registers
+          show = { 'Locals' },
+        },
       }
     end,
   },
@@ -89,20 +94,36 @@ return {
   -- dap-virtual-text
   {
     'theHamsta/nvim-dap-virtual-text',
-    dependencies = { 'mfussenegger/nvim-dap' },
+    dependencies = { 'mfussenegger/nvim-dap', 'nvim-treesitter/nvim-treesitter' },
     config = function()
-      require('nvim-dap-virtual-text').setup {
+      local nvim_dap_virtual_text = require 'nvim-dap-virtual-text'
+
+      -- Enable debug mode
+      nvim_dap_virtual_text.setup {
         enabled = true,
         enabled_commands = true,
         highlight_changed_variables = true,
         highlight_new_as_changed = true,
         show_stop_reason = true,
         commented = false,
+        only_first_definition = true, -- Change back to true
+        all_references = false,
+        clear_on_continue = false,
         virt_text_pos = 'eol',
         all_frames = false,
         virt_lines = false,
         virt_text_win_col = nil,
       }
+
+      -- Force enable after setup
+      vim.schedule(function()
+        nvim_dap_virtual_text.enable()
+        print('DAP Virtual Text enabled: ' .. tostring(nvim_dap_virtual_text.is_enabled()))
+      end)
+
+      -- Better colors for virtual text
+      vim.api.nvim_set_hl(0, 'NvimDapVirtualText', { fg = '#61afef', italic = true })
+      vim.api.nvim_set_hl(0, 'NvimDapVirtualTextChanged', { fg = '#e5c07b', italic = true, bold = true })
     end,
   },
 
@@ -221,6 +242,15 @@ return {
         local ok_neo, _ = pcall(vim.cmd, 'Neotree close')
 
         dapui.open()
+      end
+
+      dap.listeners.after.event_stopped['dapui_config'] = function()
+        -- Force refresh virtual text when stopped
+        vim.schedule(function()
+          local vtext = require 'nvim-dap-virtual-text'
+          vtext.refresh()
+          print 'Virtual text refreshed'
+        end)
       end
 
       dap.listeners.before.event_terminated['dapui_config'] = function()
