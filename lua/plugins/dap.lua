@@ -16,7 +16,7 @@ return {
 
   {
     'nvim-neotest/nvim-nio',
-    lazy = true, -- opzionale, lazy lo carica quando serve
+    lazy = true,
   },
 
   -- dap-ui
@@ -25,20 +25,63 @@ return {
     dependencies = { 'mfussenegger/nvim-dap' },
     config = function()
       require('dapui').setup {
-        icons = { expanded = '▾', collapsed = '▸' },
+        icons = { expanded = '▾', collapsed = '▸', current_frame = '→' },
+        mappings = {
+          expand = { '<CR>', '<2-LeftMouse>' },
+          open = 'o',
+          remove = 'd',
+          edit = 'e',
+          repl = 'r',
+          toggle = 't',
+        },
         layouts = {
           {
-            elements = { 'scopes', 'breakpoints', 'stacks', 'watches' },
-            size = 40,
-            position = 'right',
+            elements = {
+              { id = 'scopes', size = 0.60 }, -- Variables - 60% of left panel
+              { id = 'breakpoints', size = 0.15 }, -- Breakpoints - 15%
+              { id = 'stacks', size = 0.15 }, -- Call stack - 15%
+              { id = 'watches', size = 0.10 }, -- Watches - 10%
+            },
+            size = 50, -- Width of left sidebar (columns)
+            position = 'left',
           },
           {
-            elements = { 'repl' },
-            size = 10,
+            elements = {
+              { id = 'repl', size = 0.5 }, -- REPL/Console
+              { id = 'console', size = 0.5 }, -- Output
+            },
+            size = 12, -- Height of bottom panel (lines)
             position = 'bottom',
           },
         },
-        floating = { border = 'rounded' },
+        controls = {
+          enabled = true,
+          element = 'repl',
+          icons = {
+            pause = '⏸',
+            play = '▶',
+            step_into = '⏎',
+            step_over = '⏭',
+            step_out = '⏮',
+            step_back = '⏪',
+            run_last = '↻',
+            terminate = '⏹',
+            disconnect = '⏏',
+          },
+        },
+        floating = {
+          max_height = 0.9,
+          max_width = 0.9,
+          border = 'rounded',
+          mappings = {
+            close = { 'q', '<Esc>' },
+          },
+        },
+        windows = { indent = 1 },
+        render = {
+          max_type_length = nil,
+          max_value_lines = 100,
+        },
       }
     end,
   },
@@ -56,6 +99,9 @@ return {
         show_stop_reason = true,
         commented = false,
         virt_text_pos = 'eol',
+        all_frames = false,
+        virt_lines = false,
+        virt_text_win_col = nil,
       }
     end,
   },
@@ -65,6 +111,7 @@ return {
     'mfussenegger/nvim-dap',
     config = function()
       local dap = require 'dap'
+      local dapui = require 'dapui'
 
       -- Adapter
       dap.adapters.codelldb = {
@@ -76,44 +123,112 @@ return {
         },
       }
 
-      -- Highlight e signs
-      vim.fn.sign_define('DapBreakpoint', { text = '●', texthl = 'DiagnosticSignError', linehl = '', numhl = '' })
-      vim.fn.sign_define('DapStopped', { text = '▶', texthl = 'DiagnosticSignWarn', linehl = 'Visual', numhl = '' })
-      vim.fn.sign_define('DapBreakpointCondition', { text = '◆', texthl = 'DiagnosticSignInfo', linehl = '', numhl = '' })
+      -- Nicer signs and highlights
+      vim.fn.sign_define('DapBreakpoint', {
+        text = '●',
+        texthl = 'DapBreakpoint',
+        linehl = '',
+        numhl = 'DapBreakpoint',
+      })
+      vim.fn.sign_define('DapBreakpointCondition', {
+        text = '◆',
+        texthl = 'DapBreakpoint',
+        linehl = '',
+        numhl = 'DapBreakpoint',
+      })
+      vim.fn.sign_define('DapBreakpointRejected', {
+        text = '○',
+        texthl = 'DapBreakpoint',
+        linehl = '',
+        numhl = 'DapBreakpoint',
+      })
+      vim.fn.sign_define('DapStopped', {
+        text = '→',
+        texthl = 'DapStopped',
+        linehl = 'DapStoppedLine',
+        numhl = 'DapStopped',
+      })
+      vim.fn.sign_define('DapLogPoint', {
+        text = '◆',
+        texthl = 'DapLogPoint',
+        linehl = '',
+        numhl = 'DapLogPoint',
+      })
+
+      -- Colors
+      vim.api.nvim_set_hl(0, 'DapBreakpoint', { fg = '#e51400' })
+      vim.api.nvim_set_hl(0, 'DapStopped', { fg = '#98c379' })
+      vim.api.nvim_set_hl(0, 'DapStoppedLine', { bg = '#2d3139' })
 
       -- Keymaps
-      local opts = { noremap = true, silent = true }
       vim.keymap.set('n', '<leader>b', function()
         dap.toggle_breakpoint()
-      end, { noremap = true, silent = true, desc = 'Toggle dap breakpoint' })
+      end, { noremap = true, silent = true, desc = 'Toggle breakpoint' })
+
       vim.keymap.set('n', '<leader>B', function()
         dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
-      end, { noremap = true, silent = true, desc = 'Breakpoint with condition' })
-      vim.keymap.set('n', '<leader>dr', function()
-        dap.repl.open()
-      end, { noremap = true, silent = true, desc = 'Debug Run' })
+      end, { noremap = true, silent = true, desc = 'Conditional breakpoint' })
+
+      vim.keymap.set('n', '<F5>', function()
+        dap.continue()
+      end, { noremap = true, silent = true, desc = 'Debug: Continue' })
+
+      vim.keymap.set('n', '<F10>', function()
+        dap.step_over()
+      end, { noremap = true, silent = true, desc = 'Debug: Step Over' })
+
+      vim.keymap.set('n', '<F11>', function()
+        dap.step_into()
+      end, { noremap = true, silent = true, desc = 'Debug: Step Into' })
+
+      vim.keymap.set('n', '<F12>', function()
+        dap.step_out()
+      end, { noremap = true, silent = true, desc = 'Debug: Step Out' })
+
       vim.keymap.set('n', '<leader>dc', function()
         dap.continue()
-      end, { noremap = true, silent = true, desc = 'Debug Continue' })
+      end, { noremap = true, silent = true, desc = 'Debug: Continue' })
+
       vim.keymap.set('n', '<leader>do', function()
         dap.step_over()
-      end, { noremap = true, silent = true, desc = 'Debug step Over' })
+      end, { noremap = true, silent = true, desc = 'Debug: Step Over' })
+
       vim.keymap.set('n', '<leader>di', function()
         dap.step_into()
-      end, { noremap = true, silent = true, desc = 'Debug step Into' })
+      end, { noremap = true, silent = true, desc = 'Debug: Step Into' })
+
       vim.keymap.set('n', '<leader>du', function()
         dap.step_out()
-      end, { noremap = true, silent = true, desc = 'Debug step Out' })
+      end, { noremap = true, silent = true, desc = 'Debug: Step Out' })
 
-      -- Listeners per UI
+      vim.keymap.set('n', '<leader>dt', function()
+        dap.terminate()
+      end, { noremap = true, silent = true, desc = 'Debug: Terminate' })
+
+      vim.keymap.set('n', '<leader>dr', function()
+        dap.repl.toggle()
+      end, { noremap = true, silent = true, desc = 'Debug: Toggle REPL' })
+
+      -- Close file tree and open DAP UI when debugging starts
       dap.listeners.after.event_initialized['dapui_config'] = function()
-        require('dapui').open()
+        -- Try to close common file tree plugins
+        local ok, nvim_tree = pcall(require, 'nvim-tree.api')
+        if ok then
+          nvim_tree.tree.close()
+        end
+
+        -- Try neo-tree
+        local ok_neo, _ = pcall(vim.cmd, 'Neotree close')
+
+        dapui.open()
       end
+
       dap.listeners.before.event_terminated['dapui_config'] = function()
-        require('dapui').close()
+        dapui.close()
       end
+
       dap.listeners.before.event_exited['dapui_config'] = function()
-        require('dapui').close()
+        dapui.close()
       end
 
       -- C++ configuration
