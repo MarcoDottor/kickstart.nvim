@@ -122,13 +122,11 @@ return {
           name = 'Debug C++ (build-debug)',
           type = 'codelldb',
           request = 'launch',
-          program = function()
-            return vim.fn.getcwd() .. '/build-debug/myprogram'
-          end,
-          cwd = '${workspaceFolder}',
+          program = '${workspaceFolder}/build-debug/myprogram',
+          cwd = '${workspaceFolder}/build-debug',
           stopOnEntry = false,
           justMyCode = true,
-          termianl = 'integrated',
+          terminal = 'integrated',
         },
       }
 
