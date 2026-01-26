@@ -8,7 +8,7 @@ return {
     dependencies = { 'williamboman/mason.nvim', 'mfussenegger/nvim-dap' },
     config = function()
       require('mason-nvim-dap').setup {
-        ensure_installed = { 'codelldb' },
+        ensure_installed = { 'codelldb', 'debugpy' }, -- Added debugpy for Python
         automatic_installation = true,
       }
     end,
@@ -94,34 +94,33 @@ return {
   -- dap-virtual-text
   {
     'theHamsta/nvim-dap-virtual-text',
-    dependencies = { 'mfussenegger/nvim-dap', 'nvim-treesitter/nvim-treesitter' },
+    dependencies = { 'mfussenegger/nvim-dap' },
     config = function()
-      local nvim_dap_virtual_text = require 'nvim-dap-virtual-text'
-
-      -- Enable debug mode
-      nvim_dap_virtual_text.setup {
+      require('nvim-dap-virtual-text').setup {
         enabled = true,
         enabled_commands = true,
         highlight_changed_variables = true,
-        highlight_new_as_changed = true,
+        highlight_new_as_changed = false,
         show_stop_reason = true,
         commented = false,
-        only_first_definition = true, -- Change back to true
+        only_first_definition = true,
         all_references = false,
         clear_on_continue = false,
-        virt_text_pos = 'eol',
+
+        -- Display callback
+        display_callback = function(variable)
+          return ' = ' .. variable.value
+        end,
+
+        -- Text config
+        virt_text_pos = vim.fn.has 'nvim-0.10' == 1 and 'inline' or 'eol',
+
         all_frames = false,
         virt_lines = false,
         virt_text_win_col = nil,
       }
 
-      -- Force enable after setup
-      vim.schedule(function()
-        nvim_dap_virtual_text.enable()
-        print('DAP Virtual Text enabled: ' .. tostring(nvim_dap_virtual_text.is_enabled()))
-      end)
-
-      -- Better colors for virtual text
+      -- Better colors
       vim.api.nvim_set_hl(0, 'NvimDapVirtualText', { fg = '#61afef', italic = true })
       vim.api.nvim_set_hl(0, 'NvimDapVirtualTextChanged', { fg = '#e5c07b', italic = true, bold = true })
     end,
@@ -133,6 +132,9 @@ return {
     config = function()
       local dap = require 'dap'
       local dapui = require 'dapui'
+
+      -- Enable logging
+      dap.set_log_level 'TRACE'
 
       -- Adapter
       dap.adapters.codelldb = {
@@ -277,6 +279,80 @@ return {
 
       -- Reuse for C
       dap.configurations.c = dap.configurations.cpp
-    end,
+
+      -- local dap_python = require 'dap-python'
+      local dap = require 'dap'
+      local mip_python = vim.fn.expand '~/mip_env/bin/python'
+
+      -- 1. Definiamo l'Adapter (il bridge tra nvim e debugpy)
+      dap.adapters.python = {
+        type = 'executable',
+        command = mip_python,
+        args = { '-m', 'debugpy.adapter' },
+      }
+
+      -- 2. Definiamo le Configurazioni (cosa appare quando premi F5)
+      dap.configurations.python = {
+        {
+          type = 'python',
+          request = 'launch',
+          name = 'Launch File (mip_env)',
+          program = '${file}',
+          pythonPath = mip_python,
+          console = 'integratedTerminal',
+        },
+        {
+          type = 'python',
+          request = 'launch',
+          name = 'Launch File with Arguments',
+          program = '${file}',
+          args = function()
+            local args_string = vim.fn.input 'Arguments: '
+            return vim.split(args_string, ' +')
+          end,
+          pythonPath = mip_python,
+          console = 'integratedTerminal',
+        },
+        {
+          type = 'python',
+          request = 'launch',
+          name = 'Pytest: Current File',
+          module = 'pytest',
+          args = { '${file}' },
+          pythonPath = mip_python,
+          console = 'integratedTerminal',
+        },
+      }
+      --
+      -- -- Espandiamo il percorso del tuo venv
+      -- local mip_python_path = vim.fn.expand '~/mip_env/bin/python'
+      --
+      -- -- Logica di fallback: Priorità a mip_env, poi venv attivo, poi sistema
+      -- local python_executable = ''
+      -- if vim.fn.executable(mip_python_path) == 1 then
+      --   python_executable = mip_python_path
+      -- elseif vim.env.VIRTUAL_ENV then
+      --   python_executable = vim.env.VIRTUAL_ENV .. '/bin/python'
+      -- else
+      --   python_executable = 'python3'
+      -- end
+      --
+      -- -- Importante: nvim-dap-python configura da solo sia l'adapter che le configurazioni.
+      -- -- Passiamo direttamente la stringa del percorso.
+      -- dap_python.setup(python_executable)
+      --
+      -- -- Se vuoi aggiungere una configurazione specifica con argomenti
+      -- table.insert(dap.configurations.python, {
+      --   type = 'python',
+      --   request = 'launch',
+      --   name = 'Launch file with arguments',
+      --   program = '${file}',
+      --   args = function()
+      --     local args_string = vim.fn.input 'Arguments: '
+      --     return vim.split(args_string, ' +')
+      --   end,
+      --   -- Non serve ridefinire pythonPath qui, nvim-dap-python usa quello dello setup
+      -- })
+    end, -- fine della funzione config di nvim-dap
   },
 }

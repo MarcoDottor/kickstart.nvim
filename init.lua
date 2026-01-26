@@ -886,26 +886,30 @@ require('lazy').setup({
         'L3MON4D3/LuaSnip',
         version = '2.*',
         build = (function()
-          -- Build Step is needed for regex support in snippets.
-          -- This step is not supported in many windows environments.
-          -- Remove the below condition to re-enable on windows.
           if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
             return
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
-        },
+        dependencies = {},
         opts = {},
+        config = function()
+          local luasnip = require 'luasnip'
+
+          local function leave_snippet()
+            if
+              ((vim.v.event.old_mode == 's' and vim.v.event.new_mode == 'n') or vim.v.event.old_mode == 'i')
+              and luasnip.session.current_nodes[vim.api.nvim_get_current_buf()]
+              and not luasnip.session.jump_active
+            then
+              luasnip.unlink_current()
+            end
+          end
+
+          vim.api.nvim_create_autocmd('ModeChanged', {
+            callback = leave_snippet,
+          })
+        end,
       },
       'folke/lazydev.nvim',
     },
@@ -1085,6 +1089,7 @@ require('lazy').setup({
   require 'plugins.tinyInline',
   require 'plugins.htmlAutoClose',
   require 'plugins.dap',
+  -- require 'plugins.luaSnip',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1131,6 +1136,7 @@ vim.keymap.set('n', 'yW', 'yE', { desc = 'Yank to the end of the WORD' })
 -- vim.keymap.set('n', 'dw', 'de', { desc = 'Delete word yank to the end of the word' })
 -- vim.keymap.set('n', 'dW', 'dE', { desc = 'Delete word yank to the end of the WORD' })
 vim.keymap.set('n', ';', ':', { desc = 'Open command mode by semicolon' })
+vim.keymap.set('i', '<C-CR>', '<Esc>^O', { desc = 'Creates new line on cursor' })
 
 vim.keymap.set('i', '<Tab>', function()
   local next_char = vim.fn.strpart(vim.fn.getline '.', vim.fn.col '.' - 1, 1)
