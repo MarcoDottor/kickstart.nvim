@@ -756,6 +756,12 @@ require('lazy').setup({
                 onEdit = false,
                 onOpenAndSave = true,
               },
+              diagnostics = {
+                ignoredPatterns = { 'Overfull' },
+              },
+              symbols = {
+                ignoredPatterns = { 'pt too wide' },
+              },
               diagnosticsDelay = 300,
               formatterLineLength = 80,
               forwardSearch = {
@@ -798,6 +804,27 @@ require('lazy').setup({
           },
         },
       }
+
+      local orig_handler = vim.lsp.handlers['textDocument/publishDiagnostics']
+
+      vim.lsp.handlers['textDocument/publishDiagnostics'] = function(err, result, ctx, config)
+        if not result or not result.diagnostics then
+          return orig_handler(err, result, ctx, config)
+        end
+
+        local filtered = {}
+        for _, diag in ipairs(result.diagnostics) do
+          local msg = diag.message or ''
+
+          -- filtra SOLO Overfull/Underfull box
+          if not (msg:match 'Overfull \\hbox' or msg:match 'Underfull \\hbox' or msg:match 'Overfull \\vbox' or msg:match 'Underfull \\vbox') then
+            table.insert(filtered, diag)
+          end
+        end
+
+        result.diagnostics = filtered
+        return orig_handler(err, result, ctx, config)
+      end
 
       -- Ensure the servers and tools above are installed
       --
