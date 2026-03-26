@@ -75,7 +75,7 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.o.scrolloff = 15
+vim.o.scrolloff = 12
 
 -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)
@@ -589,6 +589,11 @@ require('lazy').setup({
       --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
+      vim.filetype.add {
+        extension = {
+          mod = 'mod',
+        },
+      }
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -646,7 +651,7 @@ require('lazy').setup({
 
         clangd = {
           cmd = { 'clangd', '--background-index', '--clang-tidy', '--completion-style=detailed', '--header-insertion=iwyu' },
-          filetypes = { 'c', 'cpp', 'objc', 'objcpp' },
+          filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'mod' },
           root_dir = require('lspconfig').util.root_pattern('compile_commands.json', 'compile_flags.txt', '.git'),
           init_options = {
             fallbackFlags = { '-std=c++20' },
@@ -1157,6 +1162,7 @@ vim.keymap.set('v', '<C-c>', '"+y', { desc = 'Copy to system clipboard' })
 vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"*p', { desc = 'Paste from system clipboard' })
 vim.keymap.set('i', '<C-h>', '<Space><Esc>dbxi', { desc = 'Delete backward in insert mode' })
 vim.keymap.set('v', 'ie', '<Esc>ggVG', { desc = 'Highlight everything' })
+vim.keymap.set('n', 'yie', '<Esc>ggyG', { desc = 'Yank everything' })
 vim.keymap.set('n', 'cie', '<Esc>ggVGc', { desc = 'Change everything' })
 vim.keymap.set('n', 'yw', 'ye', { desc = 'Yank to the end of the word' })
 vim.keymap.set('n', 'yW', 'yE', { desc = 'Yank to the end of the WORD' })
