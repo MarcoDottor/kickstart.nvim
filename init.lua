@@ -1160,7 +1160,6 @@ require('lazy').setup({
 --
 vim.keymap.set('v', '<C-c>', '"+y', { desc = 'Copy to system clipboard' })
 vim.keymap.set({ 'n', 'v', 'i' }, '<C-v>', '<Esc>"*p', { desc = 'Paste from system clipboard' })
-vim.keymap.set('i', '<C-h>', '<Space><Esc>dbxi', { desc = 'Delete backward in insert mode' })
 vim.keymap.set('v', 'ie', '<Esc>ggVG', { desc = 'Highlight everything' })
 vim.keymap.set('n', 'yie', '<Esc>ggyG', { desc = 'Yank everything' })
 vim.keymap.set('n', 'cie', '<Esc>ggVGc', { desc = 'Change everything' })
@@ -1181,3 +1180,13 @@ vim.keymap.set('i', '<Tab>', function()
 end, { expr = true, noremap = true, desc = 'Tab out' })
 
 require 'custom.keyMappings'
+
+vim.keymap.set('i', '<C-h>', function()
+  local at_eol = vim.fn.col '.' >= vim.fn.col '$'
+  vim.cmd 'normal! db'
+  if at_eol then
+    vim.cmd 'startinsert!' -- equivalent to 'A', cursor after last char
+  else
+    vim.cmd 'startinsert' -- equivalent to 'i', cursor before current char
+  end
+end, { desc = 'Delete backward in insert mode' })
