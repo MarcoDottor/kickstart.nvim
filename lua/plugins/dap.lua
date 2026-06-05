@@ -37,15 +37,18 @@ return {
         layouts = {
           {
             elements = {
-              { id = 'scopes', size = 1.0 }, -- Only variables, full height
+              { id = 'watches', size = 0.2 },
+              { id = 'scopes', size = 0.8 },
+              -- { id = 'scopes', size = 1.0 }, -- Only variables, full height
             },
             size = 50, -- Width of left sidebar (columns)
             position = 'left',
           },
           {
             elements = {
-              { id = 'repl', size = 0.5 }, -- REPL/Console
-              { id = 'console', size = 0.5 }, -- Output
+              { id = 'repl', size = 1 }, -- REPL/Console
+              -- { id = 'repl', size = 0.5 }, -- REPL/Console
+              -- { id = 'console', size = 0.5 }, -- Output
             },
             size = 12, -- Height of bottom panel (lines)
             position = 'bottom',
@@ -232,6 +235,14 @@ return {
         dap.repl.toggle()
       end, { noremap = true, silent = true, desc = 'Debug: Toggle REPL' })
 
+      vim.keymap.set('n', '<leader>dw', function()
+        dapui.elements.watches.add(vim.fn.input 'Watch expression: ')
+      end, { noremap = true, silent = true, desc = 'Debug: Add watch' })
+
+      vim.keymap.set('n', '<leader>dW', function()
+        dapui.elements.watches.remove()
+      end, { noremap = true, silent = true, desc = 'Debug: Remove watch' })
+
       -- Close file tree and open DAP UI when debugging starts
       dap.listeners.after.event_initialized['dapui_config'] = function()
         -- Try to close common file tree plugins
@@ -301,18 +312,18 @@ return {
           pythonPath = mip_python,
           console = 'integratedTerminal',
         },
-        {
-          type = 'python',
-          request = 'launch',
-          name = 'Launch File with Arguments',
-          program = '${file}',
-          args = function()
-            local args_string = vim.fn.input 'Arguments: '
-            return vim.split(args_string, ' +')
-          end,
-          pythonPath = mip_python,
-          console = 'integratedTerminal',
-        },
+        -- {
+        --   type = 'python',
+        --   request = 'launch',
+        --   name = 'Launch File with Arguments',
+        --   program = '${file}',
+        --   args = function()
+        --     local args_string = vim.fn.input 'Arguments: '
+        --     return vim.split(args_string, ' +')
+        --   end,
+        --   pythonPath = mip_python,
+        --   console = 'integratedTerminal',
+        -- },
         {
           type = 'python',
           request = 'launch',
@@ -323,36 +334,6 @@ return {
           console = 'integratedTerminal',
         },
       }
-      --
-      -- -- Espandiamo il percorso del tuo venv
-      -- local mip_python_path = vim.fn.expand '~/mip_env/bin/python'
-      --
-      -- -- Logica di fallback: Priorità a mip_env, poi venv attivo, poi sistema
-      -- local python_executable = ''
-      -- if vim.fn.executable(mip_python_path) == 1 then
-      --   python_executable = mip_python_path
-      -- elseif vim.env.VIRTUAL_ENV then
-      --   python_executable = vim.env.VIRTUAL_ENV .. '/bin/python'
-      -- else
-      --   python_executable = 'python3'
-      -- end
-      --
-      -- -- Importante: nvim-dap-python configura da solo sia l'adapter che le configurazioni.
-      -- -- Passiamo direttamente la stringa del percorso.
-      -- dap_python.setup(python_executable)
-      --
-      -- -- Se vuoi aggiungere una configurazione specifica con argomenti
-      -- table.insert(dap.configurations.python, {
-      --   type = 'python',
-      --   request = 'launch',
-      --   name = 'Launch file with arguments',
-      --   program = '${file}',
-      --   args = function()
-      --     local args_string = vim.fn.input 'Arguments: '
-      --     return vim.split(args_string, ' +')
-      --   end,
-      --   -- Non serve ridefinire pythonPath qui, nvim-dap-python usa quello dello setup
-      -- })
     end, -- fine della funzione config di nvim-dap
   },
 }
