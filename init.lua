@@ -1036,6 +1036,7 @@ require('lazy').setup({
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'harukikuri/todoage.nvim' },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -1154,6 +1155,8 @@ require('lazy').setup({
     },
   },
 })
+
+vim.opt.swapfile = false
 
 -- The line beneath this is `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

@@ -79,8 +79,8 @@ return {
         },
         windows = { indent = 1 },
         render = {
-          max_type_length = nil,
-          max_value_lines = 100,
+          max_type_length = 20,
+          max_value_lines = 1,
         },
         -- Filter out unwanted variable scopes
         element_mappings = {},
@@ -112,6 +112,9 @@ return {
 
         -- Display callback
         display_callback = function(variable)
+          if #variable.value > 200 then
+            return nil
+          end
           return ' = ' .. variable.value
         end,
 
@@ -285,6 +288,7 @@ return {
           stopOnEntry = false,
           justMyCode = true,
           terminal = 'integrated',
+          exceptionBreakpoints = { 'cpp_throw' },
         },
       }
 
@@ -311,6 +315,7 @@ return {
           program = '${file}',
           pythonPath = mip_python,
           console = 'integratedTerminal',
+          exceptionBreakpoints = { 'raised', 'uncaught' },
         },
         -- {
         --   type = 'python',
@@ -324,15 +329,15 @@ return {
         --   pythonPath = mip_python,
         --   console = 'integratedTerminal',
         -- },
-        {
-          type = 'python',
-          request = 'launch',
-          name = 'Pytest: Current File',
-          module = 'pytest',
-          args = { '${file}' },
-          pythonPath = mip_python,
-          console = 'integratedTerminal',
-        },
+        -- {
+        --   type = 'python',
+        --   request = 'launch',
+        --   name = 'Pytest: Current File',
+        --   module = 'pytest',
+        --   args = { '${file}' },
+        --   pythonPath = mip_python,
+        --   console = 'integratedTerminal',
+        -- },
       }
     end, -- fine della funzione config di nvim-dap
   },

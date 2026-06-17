@@ -30,6 +30,7 @@
   "telescope.nvim": { "branch": "master", "commit": "e709d31454ee6e6157f0537f861f797bd44c0bad" },
   "tiny-inline-diagnostic.nvim": { "branch": "main", "commit": "d9d12d4bfb9a4c5b8b8bdf7f612551df6972946c" },
   "todo-comments.nvim": { "branch": "main", "commit": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668" },
+  "todoage.nvim": { "branch": "main", "commit": "36604d3590eee3b2f4c22ee5ad51b323ddece618" },
   "tokyonight.nvim": { "branch": "main", "commit": "5da1b76e64daf4c5d410f06bcb6b9cb640da7dfd" },
   "vim-fugitive": { "branch": "master", "commit": "61b51c09b7c9ce04e821f6cf76ea4f6f903e3cf4" },
   "vimtex": { "branch": "master", "commit": "f5c37462c690da9a0d05cd12a7b9595b10b56200" },
