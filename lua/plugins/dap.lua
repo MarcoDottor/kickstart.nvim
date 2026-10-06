@@ -306,6 +306,37 @@ return {
         args = { '-m', 'debugpy.adapter' },
       }
 
+      -- Stoppiamo esecuzione se si lancia eccezione
+      local exception_filters = {
+        codelldb = { 'cpp_throw' },
+        python = { 'uncaught', 'userUnhandled' },
+      }
+      local exception_enabled = true
+
+      local function apply_exception_breakpoints()
+        for adapter, filters in pairs(exception_filters) do
+          dap.defaults[adapter].exception_breakpoints = exception_enabled and filters or {}
+        end
+        local session = dap.session()
+        if session then
+          dap.set_exception_breakpoints(dap.defaults[session.config.type].exception_breakpoints)
+        end
+      end
+
+      apply_exception_breakpoints()
+
+      vim.api.nvim_create_user_command('DapExceptionToggle', function()
+        exception_enabled = not exception_enabled
+        apply_exception_breakpoints()
+        vim.notify('Exception breakpoints: ' .. (exception_enabled and 'ON' or 'OFF'))
+      end, {})
+
+      vim.keymap.set('n', '<leader>dE', '<cmd>DapExceptionToggle<CR>', { desc = 'Debug: Toggle exception breakpoints' })
+
+      vim.keymap.set('n', '<leader>de', function()
+        dap.set_exception_breakpoints()
+      end, { desc = 'Debug: Set exception breakpoints' })
+
       -- 2. Definiamo le Configurazioni (cosa appare quando premi F5)
       dap.configurations.python = {
         {
